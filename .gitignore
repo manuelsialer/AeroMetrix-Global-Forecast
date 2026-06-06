@@ -9,11 +9,6 @@ ENV/
 .env.local
 .env.*
 
-# Carpetas ocultas del Agente e internas
-.AGENT/
-.pytest_cache/
-docs/
-
 # Python
 __pycache__/
 *.py[cod]
