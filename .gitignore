@@ -1,0 +1,33 @@
+# Entornos virtuales
+venv/
+env/
+ENV/
+.venv/
+
+# Secretos y variables de entorno
+.env
+.env.local
+.env.*
+
+# Carpetas ocultas del Agente e internas
+.AGENT/
+.pytest_cache/
+docs/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# VSCode / IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Logs de Streamlit y otros
+*.log
+
