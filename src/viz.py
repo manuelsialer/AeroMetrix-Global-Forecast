@@ -14,12 +14,23 @@ def create_main_line_chart(df: pd.DataFrame, metric_col: str, metric_name: str):
     
     fig = go.Figure()
     
-    # Colores Hex y sus versiones RGBA transparentes para el relleno
-    palette = [
-        {"line": "#00f0ff", "fill": "rgba(0, 240, 255, 0.1)"},
-        {"line": "#39ff14", "fill": "rgba(57, 255, 20, 0.1)"},
-        {"line": "#ff5f1f", "fill": "rgba(255, 95, 31, 0.1)"}
-    ]
+    cities = df['city_name'].unique()
+    
+    if len(cities) == 1:
+        if "temp" in metric_col.lower():
+            palette = [{"line": "#FF5F1F", "fill": "rgba(255, 95, 31, 0.1)"}] # Naranja Cálido
+        elif "hum" in metric_col.lower():
+            palette = [{"line": "#00F0FF", "fill": "rgba(0, 240, 255, 0.1)"}] # Cian Acuático
+        else:
+            palette = [{"line": "#39FF14", "fill": "rgba(57, 255, 20, 0.1)"}] # Verde Viento
+    else:
+        palette = [
+            {"line": "#3B82F6", "fill": "rgba(59, 130, 246, 0.05)"},
+            {"line": "#10B981", "fill": "rgba(16, 185, 129, 0.05)"},
+            {"line": "#8B5CF6", "fill": "rgba(139, 92, 246, 0.05)"},
+            {"line": "#F59E0B", "fill": "rgba(245, 158, 11, 0.05)"},
+            {"line": "#EC4899", "fill": "rgba(236, 72, 153, 0.05)"}
+        ]
     
     cities = df['city_name'].unique()
     for i, city in enumerate(cities):
@@ -29,22 +40,32 @@ def create_main_line_chart(df: pd.DataFrame, metric_col: str, metric_name: str):
         fig.add_trace(go.Scatter(
             x=city_df["timestamp"],
             y=city_df[metric_col],
-            mode='lines+markers',
+            mode='lines',
             name=city,
-            line=dict(color=style["line"], width=3),
+            line=dict(color=style["line"], width=1.5, shape='spline'),
             fill='tozeroy',
             fillcolor=style["fill"]
         ))
 
     fig.update_layout(
-        title=f"Temporal Trends: {metric_name}",
         template="plotly_dark",
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
-        xaxis=dict(showgrid=False, title="Time"),
-        yaxis=dict(gridcolor="#1E2D4A", title=metric_name),
-        legend_title="Station",
-        margin=dict(l=0, r=0, t=40, b=0)
+        xaxis=dict(
+            showgrid=True, gridcolor="rgba(255,255,255,0.05)", 
+            title="", showticklabels=True, tickfont=dict(color="#A0AEC0"),
+            tickformat="%d %b\n%H:%M"
+        ),
+        yaxis=dict(
+            showgrid=True, gridcolor="rgba(255,255,255,0.1)", 
+            title=dict(text=metric_name, font=dict(color="#A0AEC0")), 
+            tickfont=dict(color="#A0AEC0"),
+            zeroline=True, zerolinecolor="rgba(255,255,255,0.2)"
+        ),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#A0AEC0")),
+        margin=dict(l=10, r=10, t=40, b=10),
+        height=400,
+        hovermode="x unified"
     )
     return fig
 
@@ -56,36 +77,43 @@ def create_heatmap_map(df: pd.DataFrame, metric_col: str, metric_name: str):
     if df.empty or 'latitude' not in df.columns or 'longitude' not in df.columns:
         return None
 
-    # Para el mapa, generalmente queremos el último valor de cada ciudad
-    # Así que agrupamos y tomamos el registro más reciente
     latest_df = df.sort_values('timestamp').groupby('city_name').tail(1).reset_index()
+    
+    # Prevenir tamaños negativos (ej. temperaturas bajo cero)
+    latest_df['bubble_size'] = latest_df[metric_col].abs() + 5
 
-    fig = px.scatter_geo(
+    # Escala de colores semántica
+    if "temp" in metric_col.lower():
+        color_scale = "Plasma"
+    elif "hum" in metric_col.lower():
+        color_scale = "Blues"
+    else:
+        color_scale = "Aggrnyl"
+
+    fig = px.scatter_mapbox(
         latest_df,
         lat="latitude",
         lon="longitude",
         color=metric_col,
+        size="bubble_size",
+        size_max=15,
         hover_name="city_name",
-        hover_data=["weather_desc", "temperature_c", "humidity_pct", "wind_speed_kmh"],
-        size=metric_col if metric_col != 'temperature_c' else None,
-        title=f"Global Station Overlay: {metric_name}",
-        color_continuous_scale=[[0, "#171f33"], [1, "#ff5f1f"]] if metric_col == 'temperature_c' else [[0, "#171f33"], [1, "#00f0ff"]],
-        projection="natural earth"
+        hover_data={"bubble_size": False, "latitude": False, "longitude": False, "weather_desc": True, "temperature_c": True, "humidity_pct": True, "wind_speed_kmh": True},
+        color_continuous_scale=color_scale,
+        zoom=1.5,
+        mapbox_style="carto-darkmatter"
     )
     
     fig.update_layout(
-        template="plotly_dark",
+        margin={"r":0,"t":0,"l":0,"b":0},
         paper_bgcolor="rgba(0,0,0,0)",
-        geo=dict(
-            bgcolor="rgba(0,0,0,0)",
-            showland=True,
-            landcolor="#131B2C",
-            showcountries=True,
-            countrycolor="#1E2D4A",
-            showlakes=True,
-            lakecolor="#0A101C"
-        ),
-        margin={"r":0,"t":40,"l":0,"b":0}
+        height=400,
+        coloraxis_colorbar=dict(
+            title=dict(text="", font=dict(color="#A0AEC0")),
+            tickfont=dict(color="#A0AEC0"),
+            lenmode="fraction", len=0.75,
+            thickness=15
+        )
     )
     
     return fig
@@ -103,7 +131,7 @@ def create_radar_chart(df: pd.DataFrame, city1: str, city2: str):
     categories = ['Temp (Relativa)', 'Humedad (%)', 'Viento (Relativo)']
     
     fig = go.Figure()
-    colors = ["#00f0ff", "#ff5f1f"]
+    colors = ["#3B82F6", "#8B5CF6"]
     
     for i, city in enumerate([city1, city2]):
         city_row = cities_data[cities_data['city_name'] == city]
@@ -125,11 +153,15 @@ def create_radar_chart(df: pd.DataFrame, city1: str, city2: str):
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
         polar=dict(
-            radialaxis=dict(visible=True, range=[0, 100], gridcolor="#171f33"),
-            angularaxis=dict(gridcolor="#171f33")
+            bgcolor="rgba(0,0,0,0)",
+            radialaxis=dict(visible=True, range=[0, 100], gridcolor="rgba(255,255,255,0.2)", tickfont=dict(color="#A0AEC0")),
+            angularaxis=dict(gridcolor="rgba(255,255,255,0.2)", tickfont=dict(color="#A0AEC0"))
         ),
         showlegend=True,
-        title="Comparativa Cara a Cara"
+        legend=dict(orientation="h", yanchor="bottom", y=1.1, xanchor="center", x=0.5, font=dict(color="#A0AEC0")),
+        title=None,
+        margin=dict(l=40, r=40, t=80, b=40),
+        height=450
     )
     return fig
 
@@ -143,9 +175,9 @@ def create_prediction_chart(history_df: pd.DataFrame, future_df: pd.DataFrame, c
     fig.add_trace(go.Scatter(
         x=history_df['timestamp'], 
         y=history_df['temperature_c'],
-        mode='lines+markers',
+        mode='lines',
         name='Histórico',
-        line=dict(color="#00f0ff", width=3)
+        line=dict(color="#3B82F6", width=1.5)
     ))
     
     # Predicción
@@ -160,16 +192,29 @@ def create_prediction_chart(history_df: pd.DataFrame, future_df: pd.DataFrame, c
             y=future_combined['temperature_c'],
             mode='lines+markers',
             name='Predicción ML',
-            line=dict(color="#39ff14", width=3, dash='dash')
+            line=dict(color="#F59E0B", width=1.5, dash='dash'),
+            marker=dict(size=4)
         ))
         
     fig.update_layout(
-        title=f"Proyección Térmica: {city}",
+        title=None,
         template="plotly_dark",
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
-        xaxis=dict(showgrid=False),
-        yaxis=dict(gridcolor="#171f33", title="Temperatura (°C)"),
-        legend_title="Tipo de Dato"
+        xaxis=dict(
+            showgrid=True, gridcolor="rgba(255,255,255,0.05)",
+            tickfont=dict(color="#A0AEC0"),
+            tickformat="%d %b\n%H:%M"
+        ),
+        yaxis=dict(
+            showgrid=True, gridcolor="rgba(255,255,255,0.1)", 
+            title=dict(text="Temperatura (°C)", font=dict(color="#A0AEC0")),
+            tickfont=dict(color="#A0AEC0"),
+            zeroline=True, zerolinecolor="rgba(255,255,255,0.2)"
+        ),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#A0AEC0")),
+        margin=dict(l=10, r=10, t=40, b=10),
+        height=450,
+        hovermode="x unified"
     )
     return fig

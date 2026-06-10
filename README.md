@@ -9,11 +9,15 @@
 ---
 
 ## 🚀 Características Principales
-1. **Extracción Automatizada**: Integración directa con la API de *OpenWeatherMap* para lectura de clima global en vivo.
-2. **Persistencia SQL Robusta**: Uso de Supabase para almacenar un registro inmutable de datos atmosféricos. Incluye decoradores de auditoría de rendimiento.
-3. **Machine Learning Integrado**: Uso de `scikit-learn` (**Random Forest Multivariable**) para inferir y proyectar la tendencia térmica para las próximas horas basándose en la evolución temporal, la humedad y el viento actuales.
-4. **Dashboard "Glow Effect"**: Rediseño extremo de la Interfaz de Usuario mediante inyección de CSS masivo en Streamlit, imitando centros de control aeroespaciales, con gráficos interactivos Plotly (Mapas de calor, Radar de comparación).
-5. **Calidad y Tests**: Módulos separados bajo principios de Responsabilidad Única y manejo de excepciones.
+1. **Doble Motor de Extracción Atmosférica**: 
+   - **OpenWeatherMap** (Tiempo Real) para captura satelital instantánea del clima actual.
+   - **Open-Meteo Archive** para descargas masivas y retroactivas gratuitas.
+2. **Ingeniería de Datos Avanzada**: 
+   - Backend robusto usando **Supabase (PostgreSQL)** con inserciones masivas en lotes (Bulk Upserts) superando el problema N+1.
+   - Contratos de datos estrictos usando **Pydantic** para validar los payloads JSON antes de la persistencia.
+3. **Machine Learning Integrado**: Uso de `scikit-learn` (**Random Forest Multivariable**) para predecir la temperatura futura, combinando codificación cíclica (Hora) con humedad y viento para proyecciones meteorológicas hiperlocales.
+4. **UX/UI Premium**: Interfaz gráfica estilo "Centro Aeroespacial" con modo oscuro profundo (`carto-darkmatter`). Implementa mapas interactivos `Scatter Mapbox` con colores semánticos, "Empty States" inteligentes, barras de carga (Spinners) y radares comparativos geográficos.
+5. **Calidad y Mantenibilidad**: Arquitectura modular con Separación de Preocupaciones (Separation of Concerns). Logs avanzados e inyección limpia de variables de entorno.
 
 ---
 
@@ -89,6 +93,6 @@ project-root/
 
 ## ⚖️ Licencias y Referencias
 - **Código Fuente**: Licencia MIT (Ver archivo `LICENSE`)
-- **Fuente de Datos**: [OpenWeatherMap API](https://openweathermap.org/)
+- **Fuentes de Datos**: [OpenWeatherMap API](https://openweathermap.org/) y [Open-Meteo Archive API](https://open-meteo.com/)
 - **Infraestructura SQL**: [Supabase](https://supabase.com/)
 - **Librería UI**: [Streamlit](https://streamlit.io/)

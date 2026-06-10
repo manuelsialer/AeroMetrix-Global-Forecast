@@ -1,7 +1,14 @@
 import os
 import time
+import logging
 from functools import wraps
+from dotenv import load_dotenv
 from supabase import create_client, Client
+
+# Configuración central de variables de entorno y logger
+load_dotenv()
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger('AeroMetrix.DB')
 
 def timer_decorator(func):
     """
@@ -13,7 +20,7 @@ def timer_decorator(func):
         start_time = time.time()
         result = func(*args, **kwargs)
         end_time = time.time()
-        print(f"[Timer] La función '{func.__name__}' se ejecutó en {end_time - start_time:.4f} segundos.")
+        logger.info(f"[Timer] La función '{func.__name__}' se ejecutó en {end_time - start_time:.4f} segundos.")
         return result
     return wrapper
 
@@ -63,20 +70,95 @@ def save_weather_data(weather_data: dict):
     except Exception as e:
         error_str = str(e)
         if '23505' in error_str:
-            print(f"    [INFO] Lectura ya existe en base de datos. (Prevenido por UNIQUE constraint)")
+            logger.debug(f"Lectura ya existe en base de datos. (Prevenido por UNIQUE constraint)")
         else:
-            print(f"    [ERROR] Fallo al insertar lectura: {e}")
+            logger.error(f"Fallo al insertar lectura: {e}")
 
 @timer_decorator
-def get_historical_data(city_name: str = None) -> list:
+def batch_save_weather_readings(location_id: int, readings_list: list):
     """
-    Recupera el historial de datos climáticos.
+    Inserta una lista de lecturas de clima en bloques para mayor velocidad.
+    readings_list debe ser una lista de diccionarios ya formateados para la tabla 'weather_readings'.
+    """
+    if not readings_list:
+        return
+        
+    supabase = get_supabase_client()
+    
+    # Preparar datos agregando location_id
+    for r in readings_list:
+        r["location_id"] = location_id
+
+    # Insertar en bloques (chunks) de 1000 para no saturar la API de Supabase
+    chunk_size = 1000
+    for i in range(0, len(readings_list), chunk_size):
+        chunk = readings_list[i:i + chunk_size]
+        try:
+            # upsert maneja los duplicados (necesita que haya constraint unique)
+            supabase.table("weather_readings").upsert(chunk, ignore_duplicates=True).execute()
+        except Exception as e:
+            logger.error(f"Fallo al insertar bloque {i}-{i+len(chunk)}: {e}")
+
+@timer_decorator
+def batch_save_historical_data(historical_data: list):
+    """
+    Guarda una descarga masiva de historial resolviendo el location_id una sola vez
+    y guardando en la base de datos usando bulk insert. Resuelve el problema N+1.
+    """
+    if not historical_data:
+        return
+        
+    supabase = get_supabase_client()
+    first = historical_data[0]
+    
+    # 1. Obtener location_id
+    loc_id = _get_or_create_location(
+        supabase, 
+        first["latitude"], 
+        first["longitude"], 
+        first["city_name"], 
+        first["country_code"]
+    )
+    
+    # 2. Formatear para inserción
+    clean_readings = []
+    for r in historical_data:
+        clean_readings.append({
+            "timestamp": r["timestamp"],
+            "temperature_c": r["temperature_c"],
+            "humidity_pct": r["humidity_pct"],
+            "wind_speed_kmh": r["wind_speed_kmh"],
+            "weather_desc": r["weather_desc"]
+        })
+        
+    # 3. Guardar todo en lote
+    batch_save_weather_readings(loc_id, clean_readings)
+
+@timer_decorator
+def get_available_cities() -> list:
+    """
+    Recupera rápidamente la lista de ciudades disponibles directamente de la tabla locations.
+    """
+    supabase = get_supabase_client()
+    response = supabase.table("locations").select("id, city_name, country_code").execute()
+    return response.data
+
+@timer_decorator
+def get_historical_data(location_ids: list = None, start_date: str = None, end_date: str = None, limit: int = 5000) -> list:
+    """
+    Recupera el historial de datos climáticos empujando los filtros a Supabase.
     """
     supabase = get_supabase_client()
     query = supabase.table("weather_readings").select("*, locations!inner(city_name, country_code, latitude, longitude)")
     
-    if city_name:
-        query = query.eq("locations.city_name", city_name)
+    if location_ids and len(location_ids) > 0:
+        query = query.in_("location_id", location_ids)
         
-    response = query.order("timestamp", desc=True).execute()
+    if start_date:
+        query = query.gte("timestamp", start_date)
+    if end_date:
+        query = query.lte("timestamp", end_date)
+        
+    # El limit protege de colapsos si se pide mucho rango para muchas ciudades a la vez.
+    response = query.order("timestamp", desc=True).limit(limit).execute()
     return response.data
