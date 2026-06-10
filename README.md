@@ -21,7 +21,7 @@ AeroMetrix Global Forecast
 
 ---
 
-## 🛠️ Instalación y Configuración Local
+## Instalación y Configuración Local
 
 Sigue estos pasos para desplegar la aplicación en tu propia computadora.
 
