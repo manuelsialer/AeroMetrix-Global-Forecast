@@ -1,4 +1,4 @@
-# 🌍 AeroMetrix Global Forecast
+AeroMetrix Global Forecast
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://streamlit.io)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
@@ -8,7 +8,7 @@
 
 ---
 
-## 🚀 Características Principales
+# Características Principales
 1. **Doble Motor de Extracción Atmosférica**: 
    - **OpenWeatherMap** (Tiempo Real) para captura satelital instantánea del clima actual.
    - **Open-Meteo Archive** para descargas masivas y retroactivas gratuitas.
@@ -70,7 +70,7 @@ python scripts/cron_worker.py
 
 ---
 
-## 📂 Estructura del Proyecto
+#Estructura del Proyecto
 
 ```text
 project-root/
@@ -91,7 +91,7 @@ project-root/
     └── db.py            # Transacciones SQL, persistencia y decoradores
 ```
 
-## ⚖️ Licencias y Referencias
+##Licencias y Referencias
 - **Código Fuente**: Licencia MIT (Ver archivo `LICENSE`)
 - **Fuentes de Datos**: [OpenWeatherMap API](https://openweathermap.org/) y [Open-Meteo Archive API](https://open-meteo.com/)
 - **Infraestructura SQL**: [Supabase](https://supabase.com/)
