@@ -348,6 +348,64 @@ def main():
             }
         )
         st.markdown("</div>", unsafe_allow_html=True)
+    '''with tab5:
 
+    st.markdown("<div style='background-color:#131B2C; padding:20px; border-radius:8px; border:1px solid #1A263D;'>", unsafe_allow_html=True)
+
+    st.subheader(f"Análisis Climático de {primary_city}")
+
+    city_df = df_filtered[df_filtered["city_name"] == primary_city].copy()
+
+    if not city_df.empty:
+
+        city_df["mes"] = city_df["timestamp"].dt.month
+
+        temp_mensual = city_df.groupby("mes")["temperature_c"].mean().reset_index()
+
+        nombres_meses = {
+            1:"Enero",2:"Febrero",3:"Marzo",4:"Abril",
+            5:"Mayo",6:"Junio",7:"Julio",8:"Agosto",
+            9:"Septiembre",10:"Octubre",11:"Noviembre",12:"Diciembre"
+        }
+
+        temp_mensual["Mes"] = temp_mensual["mes"].map(nombres_meses)
+
+        mes_caluroso = temp_mensual.loc[temp_mensual["temperature_c"].idxmax()]
+        mes_frio = temp_mensual.loc[temp_mensual["temperature_c"].idxmin()]
+
+        promedio = temp_mensual["temperature_c"].mean()
+
+        meses_calidos = temp_mensual[temp_mensual["temperature_c"] > promedio]["Mes"].tolist()
+        meses_frios = temp_mensual[temp_mensual["temperature_c"] < promedio]["Mes"].tolist()
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.metric(
+                "🔥 Mes más caluroso",
+                f"{mes_caluroso['Mes']}",
+                f"{mes_caluroso['temperature_c']:.1f} °C"
+            )
+
+        with col2:
+            st.metric(
+                "❄️ Mes más frío",
+                f"{mes_frio['Mes']}",
+                f"{mes_frio['temperature_c']:.1f} °C"
+            )
+
+        st.write("### 🌤️ Meses cálidos")
+        st.write(", ".join(meses_calidos))
+
+        st.write("### 🥶 Meses fríos")
+        st.write(", ".join(meses_frios))
+
+        st.write("### 📊 Temperatura promedio mensual")
+        st.dataframe(
+            temp_mensual[["Mes", "temperature_c"]]
+            .rename(columns={"temperature_c": "Temperatura Promedio (°C)"})
+        )
+
+    st.markdown("</div>", unsafe_allow_html=True)'''   
 if __name__ == "__main__":
     main()
