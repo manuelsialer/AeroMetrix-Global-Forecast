@@ -83,5 +83,5 @@ project-root/
 ## ⚖️ Licencias y Referencias
 - **Código Fuente**: Licencia MIT
 - **Fuentes de Datos**: [OpenWeatherMap API](https://openweathermap.org/) y [Open-Meteo Archive API](https://open-meteo.com/)
-- **Infraestructura SQL**: SQLite
+- **Infraestructura SQL**: PostGres SQl - SUPABASE
 - **Librería UI**: [Streamlit](https://streamlit.io/)
