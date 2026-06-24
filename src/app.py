@@ -213,16 +213,24 @@ def main():
             """, unsafe_allow_html=True)
             
         with col_chart:
-            # Main Line Chart
+            # Main Line Chart (Dinámico por tabs)
             st.markdown("""
             <div class="neo-card" style="padding-bottom: 0px;">
-                <div class="card-title">Temperatura <div class="card-icon-button" style="font-size:0.8rem; padding: 5px 10px;">Esta semana <span class="material-symbols-outlined" style="font-size:1rem;">expand_more</span></div></div>
+                <div class="card-title">Tendencia Climática <div class="card-icon-button" style="font-size:0.8rem; padding: 5px 10px;">Esta semana <span class="material-symbols-outlined" style="font-size:1rem;">expand_more</span></div></div>
             """, unsafe_allow_html=True)
-            fig_line = create_main_line_chart(df_filtered, "temperature_c", "Temp")
-            if fig_line: 
-                # Ajustar márgenes para encajar perfecto en la tarjeta
-                fig_line.update_layout(margin=dict(l=0, r=0, t=10, b=0), height=250)
-                st.plotly_chart(fig_line, use_container_width=True, key="main_chart")
+            
+            if selected_metrics:
+                metric_tabs = st.tabs(selected_metrics)
+                for idx, m_key in enumerate(selected_metrics):
+                    with metric_tabs[idx]:
+                        m_col, m_name = METRICS_MAP[m_key]
+                        fig_line = create_main_line_chart(df_filtered, m_col, m_name)
+                        if fig_line:
+                            fig_line.update_layout(margin=dict(l=0, r=0, t=10, b=0), height=250)
+                            st.plotly_chart(fig_line, use_container_width=True, key=f"main_chart_{m_col}")
+            else:
+                st.warning("Selecciona al menos una métrica en el panel izquierdo.")
+                
             st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<div class='section-title'>Destacados de Hoy</div>", unsafe_allow_html=True)
