@@ -16,8 +16,8 @@ AeroMetrix Global Forecast
    - Backend robusto usando **SQLite** con creación automática de esquema (DDL) y relaciones Primary Key / Foreign Key. Manejo de inserciones con librerías nativas (`sqlite3`).
    - Contratos de datos estrictos usando **Pydantic** para validar los payloads JSON antes de la persistencia.
 3. **Manejo de Errores y Decoradores**: Uso extensivo de bloques `try/except` en la manipulación de datos y creación de decoradores custom (`@timer_decorator` y `@error_handler_df`) para registrar tiempos de ejecución y prevenir fallos en la interfaz.
-4. **Machine Learning Integrado**: Uso de `scikit-learn` (**Random Forest Multivariable**) para predecir la temperatura futura.
-5. **UX/UI Premium**: Interfaz gráfica estilo "Centro Aeroespacial" implementando mapas interactivos y radares comparativos geográficos.
+4. **Machine Learning y Sistema de Recomendación IA**: Uso de `scikit-learn` (**Random Forest Multivariable**) para predecir la temperatura futura y calcular un **Travel Score** predictivo, recomendando el Top 5 de mejores ciudades globales para viajar.
+5. **UX/UI Premium**: Interfaz gráfica estilo "Centro Aeroespacial" implementando mapas interactivos, **Radares de Comparativa Múltiple** simultáneos, y un **Registro de Eventos (Event Log)** en tiempo real.
 
 ---
 
