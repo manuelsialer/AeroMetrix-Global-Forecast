@@ -52,15 +52,15 @@ def create_main_line_chart(df: pd.DataFrame, metric_col: str, metric_name: str):
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
         xaxis=dict(
-            showgrid=True, gridcolor="rgba(255,255,255,0.05)", 
-            title="", showticklabels=True, tickfont=dict(color="#A0AEC0"),
+            showgrid=False, 
+            title="", showticklabels=True, tickfont=dict(color="#8C9FBA"),
             tickformat="%d %b\n%H:%M"
         ),
         yaxis=dict(
-            showgrid=True, gridcolor="rgba(255,255,255,0.1)", 
-            title=dict(text=metric_name, font=dict(color="#A0AEC0")), 
-            tickfont=dict(color="#A0AEC0"),
-            zeroline=True, zerolinecolor="rgba(255,255,255,0.2)"
+            showgrid=False, 
+            title=dict(text=metric_name, font=dict(color="#8C9FBA")), 
+            tickfont=dict(color="#8C9FBA"),
+            zeroline=False
         ),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#A0AEC0")),
         margin=dict(l=10, r=10, t=40, b=10),
@@ -118,22 +118,22 @@ def create_heatmap_map(df: pd.DataFrame, metric_col: str, metric_name: str):
     
     return fig
 
-def create_radar_chart(df: pd.DataFrame, city1: str, city2: str):
+def create_radar_chart(df: pd.DataFrame, cities: list):
     """
-    Crea un gráfico de Radar comparando métricas normalizadas entre dos ciudades.
+    Crea un gráfico de Radar comparando métricas normalizadas entre varias ciudades (ideal 2 a 4).
     """
     latest_df = df.sort_values('timestamp').groupby('city_name').tail(1)
     
-    cities_data = latest_df[latest_df['city_name'].isin([city1, city2])]
+    cities_data = latest_df[latest_df['city_name'].isin(cities)]
     if len(cities_data) == 0:
         return None
         
     categories = ['Temp (Relativa)', 'Humedad (%)', 'Viento (Relativo)']
     
     fig = go.Figure()
-    colors = ["#3B82F6", "#8B5CF6"]
+    colors = ["#3B82F6", "#8B5CF6", "#F59E0B", "#10B981", "#EF4444"]
     
-    for i, city in enumerate([city1, city2]):
+    for i, city in enumerate(cities):
         city_row = cities_data[cities_data['city_name'] == city]
         if not city_row.empty:
             # Normalización rápida (0-100)
@@ -146,22 +146,22 @@ def create_radar_chart(df: pd.DataFrame, city1: str, city2: str):
                 theta=categories,
                 fill='toself',
                 name=city,
-                line_color=colors[i % 2]
+                line_color=colors[i % len(colors)]
             ))
 
     fig.update_layout(
-        template="plotly_dark",
+        template="plotly_white",
         paper_bgcolor="rgba(0,0,0,0)",
         polar=dict(
-            bgcolor="rgba(0,0,0,0)",
-            radialaxis=dict(visible=True, range=[0, 100], gridcolor="rgba(255,255,255,0.2)", tickfont=dict(color="#A0AEC0")),
-            angularaxis=dict(gridcolor="rgba(255,255,255,0.2)", tickfont=dict(color="#A0AEC0"))
+            bgcolor="rgba(0,0,0,0.02)",
+            radialaxis=dict(visible=True, range=[0, 100], gridcolor="rgba(0,0,0,0.1)", tickfont=dict(color="#64748B")),
+            angularaxis=dict(gridcolor="rgba(0,0,0,0.1)", tickfont=dict(color="#1E293B", size=13))
         ),
         showlegend=True,
-        legend=dict(orientation="h", yanchor="bottom", y=1.1, xanchor="center", x=0.5, font=dict(color="#A0AEC0")),
+        legend=dict(orientation="h", yanchor="bottom", y=1.1, xanchor="center", x=0.5, font=dict(color="#1E293B")),
         title=None,
-        margin=dict(l=40, r=40, t=80, b=40),
-        height=450
+        margin=dict(l=40, r=40, t=60, b=40),
+        height=400
     )
     return fig
 
@@ -202,15 +202,15 @@ def create_prediction_chart(history_df: pd.DataFrame, future_df: pd.DataFrame, c
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
         xaxis=dict(
-            showgrid=True, gridcolor="rgba(255,255,255,0.05)",
-            tickfont=dict(color="#A0AEC0"),
+            showgrid=False,
+            tickfont=dict(color="#8C9FBA"),
             tickformat="%d %b\n%H:%M"
         ),
         yaxis=dict(
-            showgrid=True, gridcolor="rgba(255,255,255,0.1)", 
-            title=dict(text="Temperatura (°C)", font=dict(color="#A0AEC0")),
-            tickfont=dict(color="#A0AEC0"),
-            zeroline=True, zerolinecolor="rgba(255,255,255,0.2)"
+            showgrid=False, 
+            title=dict(text="Temperatura (°C)", font=dict(color="#8C9FBA")),
+            tickfont=dict(color="#8C9FBA"),
+            zeroline=False
         ),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#A0AEC0")),
         margin=dict(l=10, r=10, t=40, b=10),
