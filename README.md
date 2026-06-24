@@ -80,6 +80,8 @@ project-root/
     ├── api_or_scraper.py # Interfaz de extracción (OpenWeatherMap / Open-Meteo)
     └── db.py             # Motor transaccional y cliente de conexión a Supabase
 ```
+## Limitaciones
+ Streamlit no es una herramienta de desarrollo web convencional, sino un framework orientado a prototipado de datos.Elementos como animaciones complejas, navegación multipágina fluida o interacciones asíncronas requieren workarounds que aumentan la complejidad del código.Asimismo,El sistema depende de la disponibilidad continua de OpenWeatherMap y Open-Meteo. Cualquier interrupción, cambio en los límites de rate limiting o modificación en la estructura de los endpoints puede romper el pipeline ETL sin previo aviso.
 
 ## ⚖️ Licencias y Referencias
 - **Código Fuente**: Licencia MIT
